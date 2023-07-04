@@ -41,7 +41,7 @@ function to_dict(v::AbstractVector)
 end
 
 
-# Define pure and equally tempered intervals
+# Define pure intervals
 harmonics = to_dict(1:n_harmonics)
 # remove notes that will be mapped to the same point after shirinking to one octave
 for k in keys(harmonics)
@@ -58,6 +58,16 @@ for k in keys(harmonics)
     harmonics[k] = to_cents(h)
 end
 
+# Define possible fundamental frequencies for the reference note.
+fundamentals = copy(harmonics)
+delete!(fundamentals, 1)
+delete!(fundamentals, 2)
+for k in keys(fundamentals)
+    fundamentals[k] = 1200 - fundamentals[k]
+end
+
+
+# Define equally tempered intervals
 eq_temp_12 = 0:100:1200
 eq_temp_53 = 0:(1200/53):1200
 if length(eq_temp_53) == 53
@@ -85,7 +95,7 @@ end
 DO, RE, MI, FA, SOL, LA, SI, DO_2 = [1, 10, 19, 23, 32, 41, 50, 54]
 
 turkish_scales = Dict(
-    "Çagah" => [DO, RE, MI, FA, SOL]
+    "Çagah beşlisi" => [DO, RE, MI, FA, SOL]
 )
 
 d = turkish_scales
@@ -101,6 +111,7 @@ scales = merge(western_scales, turkish_scales)
 plt.figure()
 height = 0
 plot_dots_at_height(harmonics, height, "Harmonics")
+plot_dots_at_height(fundamentals, height -= 0.5, "Fundamentals")
 plot_dots_at_height(eq_temp_12, height -= 0.5, "Equal temp. 12")
 plot_dots_at_height(eq_temp_53, height -= 0.5, "Equal temp. 53")
 
@@ -114,6 +125,7 @@ plot_scale("Ionian")
 plot_scale("Çagah")
 
 plt.vlines(collect(values(harmonics)), height, 0)
+plt.vlines(collect(values(fundamentals)), height, 0, color="orange")
 
 plt.yticks(y_label_locations, y_labels)
 plt.xlabel("cents")
