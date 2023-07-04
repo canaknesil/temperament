@@ -95,7 +95,13 @@ end
 DO, RE, MI, FA, SOL, LA, SI, DO_2 = [1, 10, 19, 23, 32, 41, 50, 54]
 
 turkish_scales = Dict(
-    "Çagah beşlisi" => [DO, RE, MI, FA, SOL]
+    "Çagah dörtlüsü/beşlisi" => [DO, RE, MI, FA, SOL],
+    "Buselik dörtlüsü/beşlisi" => [DO, RE, MI-5, FA, SOL],
+    "Kürdi dörtlüsü/beşlisi" => [DO, RE-5, MI-5, FA, SOL],
+    "Rast dörtlüsü/beşlisi" => [DO, RE, MI-1, FA, SOL],
+    "Hicaz dörtlüsü/beşlisi" => [DO, RE-4, MI-1, FA, SOL],
+    "Uşşak dörtlüsü" => [DO, RE-1, MI-5, FA],
+    
 )
 
 d = turkish_scales
@@ -121,8 +127,13 @@ function plot_scale(scale)
     plot_dots_at_height(scales[scale], height -= 0.5, scale)
 end
 
-plot_scale("Ionian")
-plot_scale("Çagah beşlisi")
+for scale in keys(western_scales)
+    plot_scale(scale)
+end
+
+for scale in keys(turkish_scales)
+    plot_scale(scale)
+end
 
 plt.vlines(collect(values(harmonics)), height, 0)
 plt.vlines(collect(values(fundamentals)), height, 0, color="orange")
