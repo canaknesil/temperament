@@ -72,7 +72,7 @@ end
 DO, RE, MI, FA, SOL, LA, SI, DO_2 = [1, 3, 5, 6, 8, 10, 12, 13]
 
 western_scales = Dict(
-    "ionian" => [DO, RE, MI, FA, SOL, LA, SI, DO_2]
+    "Ionian" => [DO, RE, MI, FA, SOL, LA, SI, DO_2]
 )
 
 d = western_scales
@@ -85,7 +85,7 @@ end
 DO, RE, MI, FA, SOL, LA, SI, DO_2 = [1, 10, 19, 23, 32, 41, 50, 54]
 
 turkish_scales = Dict(
-    "cagah" => [DO, RE, MI, FA, SOL]
+    "Çagah" => [DO, RE, MI, FA, SOL]
 )
 
 d = turkish_scales
@@ -94,15 +94,26 @@ for scale in keys(d)
     turkish_scales[scale] = map(i -> eq_temp_53[i], d[scale])
 end
 
+scales = merge(western_scales, turkish_scales)
+
 
 # Plot scales wrt intervals
 plt.figure()
-plot_dots_at_height(harmonics, 6, "Harmonics")
-plot_dots_at_height(eq_temp_12, 5, "Equal temp. 12")
-plot_dots_at_height(eq_temp_53, 4, "Equal temp. 53")
-plot_dots_at_height(western_scales["ionian"], 3, "Ionian")
-plot_dots_at_height(turkish_scales["cagah"], 2, "Cagah")
-plt.vlines(collect(values(harmonics)), 0, 6)
+height = 0
+plot_dots_at_height(harmonics, height, "Harmonics")
+plot_dots_at_height(eq_temp_12, height -= 0.5, "Equal temp. 12")
+plot_dots_at_height(eq_temp_53, height -= 0.5, "Equal temp. 53")
+
+height -= 0.5
+function plot_scale(scale)
+    global height
+    plot_dots_at_height(scales[scale], height -= 0.5, scale)
+end
+
+plot_scale("Ionian")
+plot_scale("Çagah")
+
+plt.vlines(collect(values(harmonics)), height, 0)
 
 plt.yticks(y_label_locations, y_labels)
 plt.xlabel("cents")
