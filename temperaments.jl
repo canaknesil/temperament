@@ -122,7 +122,7 @@ function plot_scale(scale)
 end
 
 plot_scale("Ionian")
-plot_scale("Çagah")
+plot_scale("Çagah beşlisi")
 
 plt.vlines(collect(values(harmonics)), height, 0)
 plt.vlines(collect(values(fundamentals)), height, 0, color="orange")
