@@ -52,6 +52,17 @@ function scale_to_cents(scales::AbstractDict, temperament_map::AbstractVector)
     return d
 end
 
+function transpose_to_DO!(v::AbstractVector, temperament::Integer)
+    if length(v) > 0
+        n = v[1] - 1
+        for i = 1:length(v)
+            v[i] -= n
+            if v[i] <= 0
+                v[i] += temperament
+            end
+        end
+    end
+end
 
 # Define pure intervals
 harmonics = to_dict(1:n_harmonics)
@@ -129,12 +140,42 @@ turkish_classical_scalets = Dict(
     "Hicaz dörtlüsü"   => [DO  , RE-4, MI-1, FA],
     "Hicaz beşlisi"    => [DO  , RE-4, MI-1, FA  , SOL],
     "Uşşak dörtlüsü"   => [DO  , RE-1, MI-5, FA],
-    "Hüseyni beşlisi"  => [DO  , RE-1, MI-5, FA  , SOL]
+    "Hüseyni beşlisi"  => [DO  , RE-1, MI-5, FA  , SOL],
+    "Segah dörtlüsü"   => [DO  , RE-4, MI-4, FA],
+    "Segah beşlisi"    => [DO  , RE-4, MI-4, FA  , SOL],
+    "Saba dörtlüsü"    => [DO  , RE-1, MI-5, FA-4],
+    "Nikriz beşlisi"   => [DO  , RE  , MI-4, FA+4, SOL],
+    "Hüzzam beşlisi"   => [DO  , RE-4, MI-4, FA-3, SOL]
 )
 
+# kaynak: http://adanamusikidernegi.com/?pnum=289&pt=Makamlar
 turkish_classical_scales = Dict(
-    "Çargah makamı"  => [DO  , RE  , MI  , FA  , SOL  , LA  , SI  , DO_2]
+    # basit makamlar
+    "Çargah / mahur (sol) / acemaşiran (fa) makamı" => [DO, RE, MI, FA, SOL, LA, SI], # durak: do, güçlü: sol, yeden: si
+    "Buselik / şehnaz buselik / nihavent (sol) / ruhnevaz (mi) / sultaniyegâh (re) makamı" => [LA, SI, DO, RE, MI, FA, SOL], # durak: la, güçlü: mi, yeden: sol+4
+    "Kürdî / kürdilihicazkâr (sol) / aşk’efzâ (mi) / ferahnümâ (re) makamı" => [LA, SI-5, DO, RE, MI, FA, SOL], # durak: la, güçlü: re, yeden: sol
+    "Rast makamı"            => [SOL, LA, SI-1, DO, RE, MI, FA+4], # durak: sol, güçlü: re, yeden: fa+4
+    "Uşşak / bayati makamı"  => [LA, SI-1, DO, RE, MI, FA, SOL], # durak: la, güçlü: re, yeden: sol
+    "Neva / tahir makamı"    => [LA, SI-1, DO, RE, MI, FA+4, SOL], # durak: la, güçlü: re, yeden: sol
+    "Hümayun makamı"         => [LA, SI-4, DO+4, RE, MI, FA, SOL], # durak: la, güçlü: re, yeden: sol
+    "Hicaz makamı"           => [LA, SI-4, DO+4, RE, MI, FA+4, SOL], # durak: la, güçlü: re, yeden: sol
+    "Uzzal makamı"           => [LA, SI-4, DO+4, RE, MI, FA+4, SOL], # durak: la, güçlü: mi, yeden: sol
+    "Zirgüleli hicaz / zirgüleli suzinâk (sol) / Hicazkâr (sol) / evcârâ (fa#) / suz-i dil (mi) / şedd-i araban (re) makamı" => [LA, SI-4, DO+4, RE, MI, FA+1, SOL+4], # durak: la, güçlü: mi, yeden: sol+4
+    "Hüseyni / muhayyer makamı" => [LA, SI-1, DO, RE, MI, FA+4, SOL], # durak: la, güçlü: mi, yeden: sol
+    "Karcığar makamı"           => [LA, SI-1, DO, RE, MI-4, FA+4, SOL], # durak: la, güçlü: re, yeden: sol
+    "Basit suzinak makamı"      => [SOL, LA, SI-1, DO, RE, MI-4, FA+4], # durak: sol, güçlü: re, yeden: fa+4
+    
+    "Isfahân makamı"          => [],
+    "Gülizâr makamı"          => [],
+    "Segah / heft-gâh (reb) makamı" => [SOL, LA, SI-1, DO, RE, MI-1, FA+4],
+    "Neveser / reng-i dil (fa) makamı" => [],
 )
+
+
+# Transpose all scales to DO.
+map(values(turkish_classical_scales)) do s
+    transpose_to_DO!(s, 53)
+end
 
 
 western_scales = scale_to_cents(western_scales, eq_temp_12)
@@ -164,8 +205,8 @@ function plot_scales(scales)
 end
 
 plot_scales(western_scales)
-height -= 0.5
-plot_scales(turkish_classical_scalets)
+#height -= 0.5
+#plot_scales(turkish_classical_scalets)
 height -= 0.5
 plot_scales(turkish_classical_scales)
 
