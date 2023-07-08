@@ -224,8 +224,8 @@ DO, RE, MI, FA, SOL, LA, SI, DO_2 = ET_53[1, 10, 19, 23, 32, 41, 50, 54]
 
 # Tetrachords (dörtlüler) and pentachords (beşliler)
 turkish_classical_sequences = TurkishSequence[
-    TurkishSequence("Çagah dörtlüsü"  , [DO  , RE  , MI  , FA]),
-    TurkishSequence("Çagah beşlisi"   , [DO  , RE  , MI  , FA  , SOL]),
+    TurkishSequence("Çargah dörtlüsü"  , [DO  , RE  , MI  , FA]),
+    TurkishSequence("Çargah beşlisi"   , [DO  , RE  , MI  , FA  , SOL]),
     TurkishSequence("Buselik dörtlüsü", [DO  , RE  , MI-5, FA]),
     TurkishSequence("Buselik beşlisi" , [DO  , RE  , MI-5, FA  , SOL]),
     TurkishSequence("Kürdi dörtlüsü"  , [DO  , RE-5, MI-5, FA]),
@@ -242,38 +242,20 @@ turkish_classical_sequences = TurkishSequence[
     TurkishSequence("Nikriz beşlisi"  , [DO  , RE  , MI-4, FA+4, SOL]),
     TurkishSequence("Hüzzam beşlisi"  , [DO  , RE-4, MI-4, FA-3, SOL])
 ]
-turkish_classical_sequences = to_dict(turkish_classical_sequences)
+seq = turkish_classical_sequences = to_dict(turkish_classical_sequences)
 
 # kaynak: http://adanamusikidernegi.com/?pnum=289&pt=Makamlar
 turkish_classical_simple_scales = TurkishScale[
     TurkishScale(
         name = "Çargah",
         scale = [DO, RE, MI, FA, SOL, LA, SI],
-        derivation = missing,
+        derivation = SimpleScale(seq["Çargah beşlisi"], seq["Çargah dörtlüsü"]),
         tonic = DO,
         dominant = SOL,
         leading = SI,
-        development = missing
+        development = increasing_scale
     )
 ]
-
-
-# "Kürdî / kürdilihicazkâr (sol) / aşk’efzâ (mi) / ferahnümâ (re) makamı" => [LA, SI-5, DO, RE, MI, FA, SOL], # durak: la, güçlü: re, yeden: sol
-# "Rast makamı"            => [SOL, LA, SI-1, DO, RE, MI, FA+4], # durak: sol, güçlü: re, yeden: fa+4
-# "Uşşak / bayati makamı"  => [LA, SI-1, DO, RE, MI, FA, SOL], # durak: la, güçlü: re, yeden: sol
-# "Neva / tahir makamı"    => [LA, SI-1, DO, RE, MI, FA+4, SOL], # durak: la, güçlü: re, yeden: sol
-# "Hümayun makamı"         => [LA, SI-4, DO+4, RE, MI, FA, SOL], # durak: la, güçlü: re, yeden: sol
-# "Hicaz makamı"           => [LA, SI-4, DO+4, RE, MI, FA+4, SOL], # durak: la, güçlü: re, yeden: sol
-# "Uzzal makamı"           => [LA, SI-4, DO+4, RE, MI, FA+4, SOL], # durak: la, güçlü: mi, yeden: sol
-# "Zirgüleli hicaz / zirgüleli suzinâk (sol) / Hicazkâr (sol) / evcârâ (fa#) / suz-i dil (mi) / şedd-i araban (re) makamı" => [LA, SI-4, DO+4, RE, MI, FA+1, SOL+4], # durak: la, güçlü: mi, yeden: sol+4
-# "Hüseyni / muhayyer makamı" => [LA, SI-1, DO, RE, MI, FA+4, SOL], # durak: la, güçlü: mi, yeden: sol
-# "Karcığar makamı"           => [LA, SI-1, DO, RE, MI-4, FA+4, SOL], # durak: la, güçlü: re, yeden: sol
-# "Basit suzinak makamı"      => [SOL, LA, SI-1, DO, RE, MI-4, FA+4], # durak: sol, güçlü: re, yeden: fa+4
-    
-# "Isfahân makamı"          => [],
-# "Gülizâr makamı"          => [],
-# "Segah / heft-gâh (reb) makamı" => [SOL, LA, SI-1, DO, RE, MI-1, FA+4],
-# "Neveser / reng-i dil (fa) makamı" => [],
 
 
 # turkish_classical_scales = Dict{AbstractString}{AbstractVector{ET_53}}(
@@ -304,8 +286,6 @@ turkish_classical_simple_scales = TurkishScale[
 # Transpose all scales to DO.
 
 
-
-# exit()
 
 # map(values(turkish_classical_scales)) do s
 #     transpose_to_DO!(s, 53)
