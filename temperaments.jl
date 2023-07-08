@@ -37,10 +37,17 @@ struct WesternScale <: Scale
     scale::AbstractVector{ET_12}
 end
 
+# dörtlü veya beşliler, nadiren üçlü
+struct TurkishSequence <: Scale
+    name::AbstractString
+    sequence::AbstractVector{ET_53}
+end
+
 abstract type ScaleDerivation end
 @enum MelodicDevelopment increasing_scale decreasing_scale increasing_and_decreasing_scale
 
 struct TurkishScale <: Scale
+    name::AbstractString
     scale::AbstractVector{ET_53}
     derivation::ScaleDerivation # tür
     tonic::ET_53    # durak
@@ -49,10 +56,9 @@ struct TurkishScale <: Scale
     development::MelodicDevelopment # seyir
 end
 
-# TODO scale blocks dörtlü veya beşliler, nadiren üçlü
-
 struct SimpleScale <: ScaleDerivation
-    # TODO dörtlü veya beşliler, nadiren üçlü
+    sequence_1::TurkishSequence
+    sequence_2::TurkishSequence
 end
 struct TransposedScale <: ScaleDerivation
     from::TurkishScale
