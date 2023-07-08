@@ -1,10 +1,78 @@
 import PyPlot as plt
 import OrderedCollections: OrderedDict as Dict
+import Base.convert
 
 #
 # Parameters
 #
 n_harmonics = 31 # 31
+
+
+#
+# Tone Type
+#
+eq_temp_12 = 0:100:1200
+eq_temp_53 = 0:(1200/53):1200
+if length(eq_temp_53) == 53
+    push!(eq_temp_53, 1200)
+end
+@assert(length(eq_temp_53) == 54)
+
+abstract type Tone end
+struct EquallyTempered{N} <: Tone
+    i::Integer
+end
+const ET_12 = EquallyTempered{12}
+const ET_53 = EquallyTempered{53}
+
+convert(::Type{EquallyTempered{N}}, i::Integer) where N = EquallyTempered{N}(i)
+
+
+#
+# Scale Type
+#
+abstract type Scale end
+
+struct WesternScale <: Scale
+    scale::AbstractVector{ET_12}
+end
+
+abstract type ScaleDerivation end
+@enum MelodicDevelopment increasing_scale decreasing_scale increasing_and_decreasing_scale
+
+struct TurkishScale <: Scale
+    scale::AbstractVector{ET_53}
+    derivation::ScaleDerivation # tür
+    tonic::ET_53    # durak
+    dominant::ET_53 # güçlü
+    leading::ET_53  # leading tone, yeden 
+    development::MelodicDevelopment # seyir
+end
+
+# TODO scale blocks dörtlü veya beşliler, nadiren üçlü
+
+struct SimpleScale <: ScaleDerivation
+    # TODO dörtlü veya beşliler, nadiren üçlü
+end
+struct TransposedScale <: ScaleDerivation
+    from::TurkishScale
+end
+struct CompoundScale <: ScaleDerivation end
+
+
+
+
+function transpose_to_DO!(v::AbstractVector, temperament::Integer)
+    if length(v) > 0
+        n = v[1] - 1
+        for i = 1:length(v)
+            v[i] -= n
+            if v[i] <= 0
+                v[i] += temperament
+            end
+        end
+    end
+end
 
 
 #
@@ -39,8 +107,8 @@ end
 #
 # Utility functions
 #
-to_cents(ratio) = 1200 * log2(ratio)
-to_ratio(cents) = 2 ^ (cents / 1200)
+to_cents(ratio::Real) = 1200 * log2(ratio)
+to_ratio(cents::Real) = 2 ^ (cents / 1200)
 
 function to_dict(v::AbstractVector)
     d = Dict()
@@ -59,18 +127,6 @@ function scale_to_cents(scales::AbstractDict, temperament_map::AbstractVector)
         d[name] = scale_to_cents(scales[name], temperament_map)
     end
     return d
-end
-
-function transpose_to_DO!(v::AbstractVector, temperament::Integer)
-    if length(v) > 0
-        n = v[1] - 1
-        for i = 1:length(v)
-            v[i] -= n
-            if v[i] <= 0
-                v[i] += temperament
-            end
-        end
-    end
 end
 
 
@@ -108,30 +164,24 @@ end
 
 
 #
-# Define equally tempered intervals
+# Define Tones
 #
-eq_temp_12 = 0:100:1200
-eq_temp_53 = 0:(1200/53):1200
-if length(eq_temp_53) == 53
-    push!(eq_temp_53, 1200)
-end
-@assert(length(eq_temp_53) == 54)
-
-western_notes_names = ["do", "", "re", "", "mi", "fa", "", "sol", "", "la", "", "si", "do"]
-western_notes = eq_temp_12
+western_notes_names = ["do", "", "re", "", "mi", "fa", "", "sol", "", "la", "", "si"]
+western_notes = ET_12.(1:12)
 
 turkish_classical_note_names =
-    ["do", "", "", "", "re", "", "", "", "mi", "fa", "", "", "", "", "sol", "", "", "", "la", "", "", "", "si", "", "do"]
+    ["do", "", "", "", "re", "", "", "", "mi", "fa", "", "", "", "", "sol", "", "", "", "la", "", "", "", "si", ""]
 turkish_classical_notes =
-    map(x -> eq_temp_53[x+1], [0 , 4 , 5 , 8 ,  9 , 13, 14, 17, 18, 22, 23, 26, 27, 30, 31, 35, 36, 39, 40, 44, 45, 48, 49, 52, 53])
+    ET_53.(1 .+ [0 , 4 , 5 , 8 ,  9 , 13, 14, 17, 18, 22, 23, 26, 27, 30, 31, 35, 36, 39, 40, 44, 45, 48, 49, 52])
 
 
-
+#
 # Define Western scales
 # For sharp or flat, add or substract 1.
+#
 DO, RE, MI, FA, SOL, LA, SI, DO_2 = [1, 3, 5, 6, 8, 10, 12, 13]
 
-western_scales = Dict(
+western_scales = Dict{AbstractString}{AbstractVector{ET_12}}(
     "Ionian (I)"     => [DO  , RE  , MI  , FA  , SOL  , LA  , SI  , DO_2],
     "Dorian (II)"    => [DO  , RE  , MI-1, FA  , SOL  , LA  , SI-1, DO_2],
     "Phrygian (III)" => [DO  , RE-1, MI-1, FA  , SOL  , LA-1, SI-1, DO_2],
@@ -146,7 +196,7 @@ western_scales = Dict(
 DO, RE, MI, FA, SOL, LA, SI, DO_2 = [1, 10, 19, 23, 32, 41, 50, 54]
 
 # Tetrachords (dörtlüler) and pentachords (beşliler)
-turkish_classical_scalets = Dict(
+turkish_classical_scalets = Dict{AbstractString}{AbstractVector{ET_53}}(
     "Çagah dörtlüsü"   => [DO  , RE  , MI  , FA],
     "Çagah beşlisi"    => [DO  , RE  , MI  , FA  , SOL],
     "Buselik dörtlüsü" => [DO  , RE  , MI-5, FA],
@@ -167,7 +217,7 @@ turkish_classical_scalets = Dict(
 )
 
 # kaynak: http://adanamusikidernegi.com/?pnum=289&pt=Makamlar
-turkish_classical_scales = Dict(
+turkish_classical_scales = Dict{AbstractString}{AbstractVector{ET_53}}(
     # basit makamlar
     "Çargah / mahur (sol) / acemaşiran (fa) makamı" => [DO, RE, MI, FA, SOL, LA, SI], # durak: do, güçlü: sol, yeden: si
     "Buselik / şehnaz buselik / nihavent (sol) / ruhnevaz (mi) / sultaniyegâh (re) makamı" => [LA, SI, DO, RE, MI, FA, SOL], # durak: la, güçlü: mi, yeden: sol+4
@@ -191,6 +241,11 @@ turkish_classical_scales = Dict(
 
 
 # Transpose all scales to DO.
+
+
+
+exit()
+
 map(values(turkish_classical_scales)) do s
     transpose_to_DO!(s, 53)
 end
