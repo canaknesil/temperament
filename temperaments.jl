@@ -34,6 +34,7 @@ convert(::Type{EquallyTempered{N}}, i::Integer) where N = EquallyTempered{N}(i)
 abstract type Scale end
 
 struct WesternScale <: Scale
+    name::AbstractString
     scale::AbstractVector{ET_12}
 end
 
@@ -187,18 +188,20 @@ turkish_classical_notes =
 #
 DO, RE, MI, FA, SOL, LA, SI, DO_2 = [1, 3, 5, 6, 8, 10, 12, 13]
 
-western_scales = Dict{AbstractString}{AbstractVector{ET_12}}(
-    "Ionian (I)"     => [DO  , RE  , MI  , FA  , SOL  , LA  , SI  , DO_2],
-    "Dorian (II)"    => [DO  , RE  , MI-1, FA  , SOL  , LA  , SI-1, DO_2],
-    "Phrygian (III)" => [DO  , RE-1, MI-1, FA  , SOL  , LA-1, SI-1, DO_2],
-    "Lydian (IV)"    => [DO  , RE  , MI  , FA+1, SOL  , LA  , SI  , DO_2],
-    "Mixolydian (V)" => [DO  , RE  , MI  , FA  , SOL  , LA  , SI-1, DO_2],
-    "Aeolian (VI)"   => [DO  , RE  , MI-1, FA  , SOL  , LA-1, SI-1, DO_2],
-    "Locrian (VII)"  => [DO  , RE-1, MI-1, FA  , SOL-1, LA-1, SI-1, DO_2]
-)
+western_scales = WesternScale[
+    WesternScale("Ionian (I)"    , [DO  , RE  , MI  , FA  , SOL  , LA  , SI  , DO_2]),
+    WesternScale("Dorian (II)"   , [DO  , RE  , MI-1, FA  , SOL  , LA  , SI-1, DO_2]),
+    WesternScale("Phrygian (III)", [DO  , RE-1, MI-1, FA  , SOL  , LA-1, SI-1, DO_2]),
+    WesternScale("Lydian (IV)"   , [DO  , RE  , MI  , FA+1, SOL  , LA  , SI  , DO_2]),
+    WesternScale("Mixolydian (V)", [DO  , RE  , MI  , FA  , SOL  , LA  , SI-1, DO_2]),
+    WesternScale("Aeolian (VI)"  , [DO  , RE  , MI-1, FA  , SOL  , LA-1, SI-1, DO_2]),
+    WesternScale("Locrian (VII)" , [DO  , RE-1, MI-1, FA  , SOL-1, LA-1, SI-1, DO_2])
+]
 
 
+#
 # Define Turkish scales
+#
 DO, RE, MI, FA, SOL, LA, SI, DO_2 = [1, 10, 19, 23, 32, 41, 50, 54]
 
 # Tetrachords (dörtlüler) and pentachords (beşliler)
@@ -250,71 +253,71 @@ turkish_classical_scales = Dict{AbstractString}{AbstractVector{ET_53}}(
 
 
 
-exit()
+# exit()
 
-map(values(turkish_classical_scales)) do s
-    transpose_to_DO!(s, 53)
-end
-
-
-western_scales = scale_to_cents(western_scales, eq_temp_12)
-turkish_classical_scalets = scale_to_cents(turkish_classical_scalets, eq_temp_53)
-turkish_classical_scales = scale_to_cents(turkish_classical_scales, eq_temp_53)
+# map(values(turkish_classical_scales)) do s
+#     transpose_to_DO!(s, 53)
+# end
 
 
-
-# Plot scales wrt intervals
-plt.figure(figsize=[20, 8]) # default figsize: [6.4, 4.8]
-height = 0
-plot_dots_at_height(harmonics, height, "Harmonics")
-plot_dots_at_height(fundamentals, height -= 0.5, "Fundamentals")
-plot_dots_at_height(eq_temp_12, height -= 0.5, "Equal temp. 12")
-plot_dots_at_height(western_notes_names,
-                    western_notes, height -= 0.5, "Wetern Music Notes")
-plot_dots_at_height(eq_temp_53, height -= 0.5, "Equal temp. 53")
-plot_dots_at_height(turkish_classical_note_names,
-                    turkish_classical_notes, height -= 0.5, "Turkish Classical Music Notes")
-
-height -= 0.5
-function plot_scales(scales)
-    global height
-    for name in keys(scales)
-        plot_dots_at_height(scales[name], height -= 0.5, name)
-    end
-end
-
-plot_scales(western_scales)
-#height -= 0.5
-#plot_scales(turkish_classical_scalets)
-height -= 0.5
-plot_scales(turkish_classical_scales)
-
-bottom, top = plt.ylim()
-
-#plt.vlines(collect(values(harmonics)), height, 0, alpha=0.5)
-#plt.vlines(collect(values(fundamentals)), height, 0, color="orange", alpha=0.5)
-
-# after nth harmonic, fade the lines
-n = 3
-for k in keys(harmonics)
-    if k >= n
-        alpha = 1 / (k - n + 1)
-    else
-        alpha = 1
-    end
-    alpha = sqrt(alpha) # slow down the fading
-    plt.vlines(harmonics[k], bottom, top, alpha=alpha, zorder=-1)
-    if k > 2
-        plt.vlines(fundamentals[k], bottom, top, alpha=alpha, color="orange", zorder=-1)
-    end
-end
+# western_scales = scale_to_cents(western_scales, eq_temp_12)
+# turkish_classical_scalets = scale_to_cents(turkish_classical_scalets, eq_temp_53)
+# turkish_classical_scales = scale_to_cents(turkish_classical_scales, eq_temp_53)
 
 
-plt.yticks(y_label_locations, y_labels)
-plt.xlabel("cents")
-plt.tight_layout()
-plt.savefig("plots/all.pdf")
 
-#plt.show()
+# # Plot scales wrt intervals
+# plt.figure(figsize=[20, 8]) # default figsize: [6.4, 4.8]
+# height = 0
+# plot_dots_at_height(harmonics, height, "Harmonics")
+# plot_dots_at_height(fundamentals, height -= 0.5, "Fundamentals")
+# plot_dots_at_height(eq_temp_12, height -= 0.5, "Equal temp. 12")
+# plot_dots_at_height(western_notes_names,
+#                     western_notes, height -= 0.5, "Wetern Music Notes")
+# plot_dots_at_height(eq_temp_53, height -= 0.5, "Equal temp. 53")
+# plot_dots_at_height(turkish_classical_note_names,
+#                     turkish_classical_notes, height -= 0.5, "Turkish Classical Music Notes")
+
+# height -= 0.5
+# function plot_scales(scales)
+#     global height
+#     for name in keys(scales)
+#         plot_dots_at_height(scales[name], height -= 0.5, name)
+#     end
+# end
+
+# plot_scales(western_scales)
+# #height -= 0.5
+# #plot_scales(turkish_classical_scalets)
+# height -= 0.5
+# plot_scales(turkish_classical_scales)
+
+# bottom, top = plt.ylim()
+
+# #plt.vlines(collect(values(harmonics)), height, 0, alpha=0.5)
+# #plt.vlines(collect(values(fundamentals)), height, 0, color="orange", alpha=0.5)
+
+# # after nth harmonic, fade the lines
+# n = 3
+# for k in keys(harmonics)
+#     if k >= n
+#         alpha = 1 / (k - n + 1)
+#     else
+#         alpha = 1
+#     end
+#     alpha = sqrt(alpha) # slow down the fading
+#     plt.vlines(harmonics[k], bottom, top, alpha=alpha, zorder=-1)
+#     if k > 2
+#         plt.vlines(fundamentals[k], bottom, top, alpha=alpha, color="orange", zorder=-1)
+#     end
+# end
+
+
+# plt.yticks(y_label_locations, y_labels)
+# plt.xlabel("cents")
+# plt.tight_layout()
+# plt.savefig("plots/all.pdf")
+
+# #plt.show()
 
 
