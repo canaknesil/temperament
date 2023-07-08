@@ -1,21 +1,23 @@
 import PyPlot as plt
 import OrderedCollections: OrderedDict as Dict
 
-
+#
+# Parameters
+#
 n_harmonics = 31 # 31
 
 
-to_cents(ratio) = 1200 * log2(ratio)
-to_ratio(cents) = 2 ^ (cents / 1200)
-
-function plot_dots_at_height(d::Dict, height::Real, label::AbstractString)
+#
+# Plotting functions
+#
+function plot_dots_at_height(d::Dict, args...)
     k = sort(collect(keys(d)))
     v = map(k -> d[k], k)
-    plot_dots_at_height(k, v, height, label)
+    plot_dots_at_height(k, v, args...)
 end
 
-function plot_dots_at_height(data::AbstractVector, height::Real, label::AbstractString)
-    plot_dots_at_height(string.(1:length(data)), data, height, label)
+function plot_dots_at_height(data::AbstractVector, args...)
+    plot_dots_at_height(string.(1:length(data)), data, args...)
 end
 
 y_label_locations = []
@@ -32,6 +34,13 @@ function plot_dots_at_height(annotations::AbstractVector, data::AbstractVector, 
         plt.annotate(annotations[i], (data[i], height))
     end
 end
+
+
+#
+# Utility functions
+#
+to_cents(ratio) = 1200 * log2(ratio)
+to_ratio(cents) = 2 ^ (cents / 1200)
 
 function to_dict(v::AbstractVector)
     d = Dict()
@@ -64,7 +73,10 @@ function transpose_to_DO!(v::AbstractVector, temperament::Integer)
     end
 end
 
-# Define pure intervals
+
+#
+# Define "harmonics" w.r.t. the reference, mapped onto one octave. nth harmonic => frequency ratio in cents
+#
 harmonics = to_dict(1:n_harmonics)
 # remove notes that will be mapped to the same point after shirinking to one octave
 for k in keys(harmonics)
@@ -82,7 +94,11 @@ for k in keys(harmonics)
 end
 
 
-# Define possible fundamental frequencies for the reference note.
+#
+# Define "fundamentals" w.r.t. the reference, where the reference would be the nth harmonic, mapped onto one octave.
+# n => frequency ratio in cents
+# "harmonics" and "fundamentals" together show just intervals w.r.t. a reference.
+#
 fundamentals = copy(harmonics)
 delete!(fundamentals, 1)
 delete!(fundamentals, 2)
@@ -91,7 +107,9 @@ for k in keys(fundamentals)
 end
 
 
+#
 # Define equally tempered intervals
+#
 eq_temp_12 = 0:100:1200
 eq_temp_53 = 0:(1200/53):1200
 if length(eq_temp_53) == 53
@@ -185,7 +203,7 @@ turkish_classical_scales = scale_to_cents(turkish_classical_scales, eq_temp_53)
 
 
 # Plot scales wrt intervals
-plt.figure()
+plt.figure(figsize=[20, 8]) # default figsize: [6.4, 4.8]
 height = 0
 plot_dots_at_height(harmonics, height, "Harmonics")
 plot_dots_at_height(fundamentals, height -= 0.5, "Fundamentals")
@@ -210,6 +228,8 @@ plot_scales(western_scales)
 height -= 0.5
 plot_scales(turkish_classical_scales)
 
+bottom, top = plt.ylim()
+
 #plt.vlines(collect(values(harmonics)), height, 0, alpha=0.5)
 #plt.vlines(collect(values(fundamentals)), height, 0, color="orange", alpha=0.5)
 
@@ -222,9 +242,9 @@ for k in keys(harmonics)
         alpha = 1
     end
     alpha = sqrt(alpha) # slow down the fading
-    plt.vlines(harmonics[k], height, 0, alpha=alpha)
+    plt.vlines(harmonics[k], bottom, top, alpha=alpha, zorder=-1)
     if k > 2
-        plt.vlines(fundamentals[k], height, 0, alpha=alpha, color="orange")
+        plt.vlines(fundamentals[k], bottom, top, alpha=alpha, color="orange", zorder=-1)
     end
 end
 
@@ -232,6 +252,8 @@ end
 plt.yticks(y_label_locations, y_labels)
 plt.xlabel("cents")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/all.pdf")
+
+#plt.show()
 
 
