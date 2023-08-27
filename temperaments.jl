@@ -30,7 +30,9 @@ const ET_53 = EquallyTempered{53}
 
 convert(::Type{EquallyTempered{N}}, i::Integer) where N = EquallyTempered{N}(i)
 +(a::EquallyTempered{N}, b::Integer) where N = EquallyTempered{N}(a.i + b)
++(a::Integer, b::EquallyTempered{N}) where N = EquallyTempered{N}(a + b.i)
 -(a::EquallyTempered{N}, b::Integer) where N = EquallyTempered{N}(a.i - b)
+-(a::Integer, b::EquallyTempered{N}) where N = EquallyTempered{N}(a - b.i)
 -(a::EquallyTempered{N}, b::EquallyTempered{N}) where N = a.i - b.i
 
 temperament_map(::Type{ET_12}) = eq_temp_12
@@ -70,7 +72,7 @@ mutable struct SimpleTurkishScale <: TurkishScale
 end
 function SimpleTurkishScale(;name, sequence_1, sequence_2, tonic, dominant, leading, development)
     scale_1 = transpose(sequence_1.scale, tonic)
-    scale_2 = transpose(sequence_2.scale, sequence_1.scale[end])
+    scale_2 = transpose(sequence_2.scale, scale_1[end])
     scale = vcat(scale_1, scale_2[2:end])
     return SimpleTurkishScale(name, sequence_1, sequence_2, scale, tonic, dominant, leading, development)
 end
@@ -79,6 +81,10 @@ get_tonic(scale::Union{WesternScale, TurkishSequence}) = scale.scale[1]
 get_tonic(scale::TurkishScale) = scale.tonic
 get_name(scale::Scale) = scale.name
 get_scale(scale::Scale) = scale.scale
+
+temperament_type(scale::WesternScale) = ET_12
+temperament_type(scale::TurkishSequence) = ET_53
+temperament_type(scale::TurkishScale) = ET_53
 
 
 #
@@ -246,8 +252,17 @@ turkish_scales = Scale[
         tonic = DO,
         dominant = SOL,
         leading = SI,
-        development = increasing_scale
-    )
+        development = missing
+    ),
+    SimpleTurkishScale(
+        name = "Buselik",
+        sequence_1 = seq["Buselik beşlisi"],
+        sequence_2 = seq["Kürdi dörtlüsü"],
+        tonic = LA,
+        dominant = MI,
+        leading = SOL+4,
+        development = missing
+    ),
 ]
 turkish_scales = to_dict(turkish_scales)
 
@@ -286,7 +301,8 @@ plot_dots_at_height(to_cents.(turkish_notes), height -= 0.5, "Turkish Music Note
 height -= 0.5
 function plot(scale::Scale)
     global height
-    plot_dots_at_height(to_cents.(transpose(get_scale(scale), get_tonic(scale))), height -= 0.5, get_name(scale),
+    new_tonic = temperament_type(scale)(1)
+    plot_dots_at_height(to_cents.(transpose(get_scale(scale), new_tonic)), height -= 0.5, get_name(scale),
                         annotations = string.(1:length(get_scale(scale))))
 end
 
